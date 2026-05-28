@@ -3,15 +3,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.schemas import StudentInput, PredictionOutput
 from app.model import model
 import pandas as pd
+import os
 
 app = FastAPI()
 
+# Allow all origins in production (Render frontend URL is set via env var)
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -77,3 +85,7 @@ def get_metrics():
         },
         "total_support": 314
     }
+
+@app.get("/")
+def root():
+    return {"status": "ok", "message": "Student Performance Classifier API"}
